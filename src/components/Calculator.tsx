@@ -118,7 +118,7 @@ function StatCard({
   color,
   isProfit,
 }: StatCardProps) {
-  const negative = isProfit && Number(inrCrores) < 0;
+  const negative = isProfit && Number(usdMillion) < 0;
   return (
     <div
       className={`print-card rounded-xl border bg-slate-800/60 backdrop-blur p-5 flex flex-col gap-3
@@ -136,10 +136,10 @@ function StatCard({
             negative ? "text-red-400" : `text-${color}-300`
           }`}
         >
-          ₹{inrCrores} Cr
+          ${usdMillion}M USD
         </p>
         <p className="text-sm text-slate-400 mt-0.5">
-          ${usdMillion}M USD
+          ₹{inrCrores} Cr
         </p>
       </div>
     </div>
@@ -152,13 +152,13 @@ function StatCard({
 export default function Calculator() {
   const [inputs, setInputs] = useState<Inputs>({
     noOfContainers: "100",
-    costPerContainer: "50000",
+    costPerContainer: "600",
     tripsPerYear: "12",
-    portCharges: "200000",
-    fuelCost: "500000",
-    operatingCost: "300000",
-    rentalPerMonth: "150000",
-    usdExchangeRate: "84",
+    portCharges: "2400",
+    fuelCost: "6000",
+    operatingCost: "3600",
+    rentalPerMonth: "1800",
+    usdExchangeRate: "91.59",
   });
 
   const handleChange = (name: keyof Inputs, val: string) => {
@@ -168,22 +168,24 @@ export default function Calculator() {
   // ── Calculations ───────────────────────────
   const results = useMemo(() => {
     const n = (key: keyof Inputs) => parseFloat(inputs[key]) || 0;
-    const rate = n("usdExchangeRate") || 84;
+    const rate = n("usdExchangeRate") || 91.59;
 
+    // Inputs are in USD — convert to INR for calculations
     const annualRevenue =
-      n("noOfContainers") * n("costPerContainer") * n("tripsPerYear");
+      n("noOfContainers") * (n("costPerContainer") * rate) * n("tripsPerYear");
 
     const variablePerTrip =
-      n("portCharges") + n("fuelCost") + n("operatingCost");
+      (n("portCharges") + n("fuelCost") + n("operatingCost")) * rate;
 
     const totalAnnualExpenses =
-      variablePerTrip * n("tripsPerYear") + n("rentalPerMonth") * 12;
+      variablePerTrip * n("tripsPerYear") + n("rentalPerMonth") * rate * 12;
 
     const annualProfit = annualRevenue - totalAnnualExpenses;
 
+    const profitInUSD = annualProfit / rate;
     const profitMargin =
-      annualRevenue > 0
-        ? ((annualProfit / annualRevenue) * 100).toFixed(1)
+      profitInUSD !== 0
+        ? ((5_500_000 / profitInUSD) * 100).toFixed(1)
         : "0.0";
 
     return {
@@ -235,7 +237,7 @@ export default function Calculator() {
               value={inputs.usdExchangeRate}
               onChange={handleChange}
               prefix="₹"
-              placeholder="84"
+              placeholder="91.59"
             />
           </InputGroup>
 
@@ -258,12 +260,12 @@ export default function Calculator() {
               />
             </div>
             <Field
-              label="Cost Per Container (₹)"
+              label="Cost Per Container ($)"
               name="costPerContainer"
               value={inputs.costPerContainer}
               onChange={handleChange}
-              prefix="₹"
-              placeholder="50000"
+              prefix="$"
+              placeholder="600"
             />
           </InputGroup>
 
@@ -273,36 +275,36 @@ export default function Calculator() {
             icon={<Wrench size={16} />}
           >
             <Field
-              label="Port Charges (₹)"
+              label="Port Charges ($)"
               name="portCharges"
               value={inputs.portCharges}
               onChange={handleChange}
-              prefix="₹"
+              prefix="$"
             />
             <Field
-              label="Fuel Cost (₹)"
+              label="Fuel Cost ($)"
               name="fuelCost"
               value={inputs.fuelCost}
               onChange={handleChange}
-              prefix="₹"
+              prefix="$"
             />
             <Field
-              label="Other Operating Cost (₹)"
+              label="Other Operating Cost ($)"
               name="operatingCost"
               value={inputs.operatingCost}
               onChange={handleChange}
-              prefix="₹"
+              prefix="$"
             />
           </InputGroup>
 
           {/* Fixed Expenses */}
           <InputGroup label="Fixed Expenses" icon={<Building2 size={16} />}>
             <Field
-              label="Monthly Rental (₹)"
+              label="Monthly Rental ($)"
               name="rentalPerMonth"
               value={inputs.rentalPerMonth}
               onChange={handleChange}
-              prefix="₹"
+              prefix="$"
             />
           </InputGroup>
 
@@ -314,11 +316,11 @@ export default function Calculator() {
             <div className="grid grid-cols-2 gap-y-2 text-sm">
               <span className="text-slate-400">Variable Cost / Trip</span>
               <span className="text-right font-medium text-slate-200">
-                ₹{fmt(String((parseFloat(inputs.portCharges) || 0) + (parseFloat(inputs.fuelCost) || 0) + (parseFloat(inputs.operatingCost) || 0)))}
+                ${fmt(String((parseFloat(inputs.portCharges) || 0) + (parseFloat(inputs.fuelCost) || 0) + (parseFloat(inputs.operatingCost) || 0)))}
               </span>
               <span className="text-slate-400">Annual Rental</span>
               <span className="text-right font-medium text-slate-200">
-                ₹{fmt(String((parseFloat(inputs.rentalPerMonth) || 0) * 12))}
+                ${fmt(String((parseFloat(inputs.rentalPerMonth) || 0) * 12))}
               </span>
               <span className="text-slate-400">Containers / Year</span>
               <span className="text-right font-medium text-slate-200">
@@ -361,7 +363,7 @@ export default function Calculator() {
             <div className="print-card rounded-xl border border-violet-500/30 bg-slate-800/60 backdrop-blur p-5 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Profit Margin
+                  Cost Recovery %
                 </span>
                 <span className="text-violet-400">
                   <Percent size={20} />
@@ -378,7 +380,7 @@ export default function Calculator() {
                   {results.profitMargin}%
                 </p>
                 <p className="text-sm text-slate-400 mt-0.5">
-                  Net profit as % of revenue
+                  $5.5M USD as % of annual profit
                 </p>
               </div>
             </div>
@@ -403,17 +405,16 @@ export default function Calculator() {
                   {
                     label: "Variable Expenses (Annual)",
                     val:
-                      (parseFloat(inputs.portCharges) || 0) *
-                        (parseFloat(inputs.tripsPerYear) || 0) +
-                      (parseFloat(inputs.fuelCost) || 0) *
-                        (parseFloat(inputs.tripsPerYear) || 0) +
-                      (parseFloat(inputs.operatingCost) || 0) *
-                        (parseFloat(inputs.tripsPerYear) || 0),
+                      ((parseFloat(inputs.portCharges) || 0) +
+                        (parseFloat(inputs.fuelCost) || 0) +
+                        (parseFloat(inputs.operatingCost) || 0)) *
+                      results.rate *
+                      (parseFloat(inputs.tripsPerYear) || 0),
                     cls: "text-orange-300",
                   },
                   {
                     label: "Fixed Expenses (Annual)",
-                    val: (parseFloat(inputs.rentalPerMonth) || 0) * 12,
+                    val: (parseFloat(inputs.rentalPerMonth) || 0) * results.rate * 12,
                     cls: "text-orange-300",
                   },
                   {
@@ -433,10 +434,10 @@ export default function Calculator() {
                   <tr key={label} className="py-2">
                     <td className="py-2 text-slate-400">{label}</td>
                     <td className={`py-2 text-right ${cls}`}>
-                      ₹{toCrores(val)} Cr
+                      ${toUSDM(val, results.rate)}M
                     </td>
                     <td className="py-2 text-right text-slate-500 pl-3">
-                      ${toUSDM(val, results.rate)}M
+                      ₹{toCrores(val)} Cr
                     </td>
                   </tr>
                 ))}
