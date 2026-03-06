@@ -182,21 +182,17 @@ export default function Calculator() {
 
     const annualProfit = annualRevenue - totalAnnualExpenses;
 
-    const profitInUSD = annualProfit / rate;
+    const revenueInUSD = annualRevenue / rate;
     const profitMargin =
-      profitInUSD !== 0
-        ? ((5_500_000 / profitInUSD) * 100).toFixed(1)
+      revenueInUSD !== 0
+        ? ((5_500_000 / revenueInUSD) * 100).toFixed(1)
         : "0.0";
-
-    const costRecoveryYears =
-      profitInUSD > 0 ? (5_500_000 / profitInUSD).toFixed(2) : "—";
 
     return {
       annualRevenue,
       totalAnnualExpenses,
       annualProfit,
       profitMargin,
-      costRecoveryYears,
       rate,
     };
   }, [inputs]);
@@ -385,25 +381,7 @@ export default function Calculator() {
                   {results.profitMargin}%
                 </p>
                 <p className="text-sm text-slate-400 mt-0.5">
-                  $5.5M USD as % of annual profit
-                </p>
-              </div>
-            </div>
-            <div className="print-card rounded-xl border border-sky-500/30 bg-slate-800/60 backdrop-blur p-5 flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Cost Recovery Years
-                </span>
-                <span className="text-sky-400">
-                  <Anchor size={20} />
-                </span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-sky-300">
-                  {results.costRecoveryYears} yrs
-                </p>
-                <p className="text-sm text-slate-400 mt-0.5">
-                  Years to recover $5.5M USD
+                  $5.5M USD as % of annual revenue
                 </p>
               </div>
             </div>
