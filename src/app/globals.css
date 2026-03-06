@@ -11,6 +11,15 @@ body {
   font-family: 'Inter', Arial, Helvetica, sans-serif;
 }
 
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 @media print {
   .no-print { display: none !important; }
   body { background: white !important; color: black !important; }

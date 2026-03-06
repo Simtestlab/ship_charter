@@ -27,7 +27,7 @@ interface Inputs {
   portCharges: string;
   fuelCost: string;
   operatingCost: string;
-  rentalPerMonth: string;
+  fixedExpensePerYear: string;
   usdExchangeRate: string;
 }
 
@@ -151,13 +151,13 @@ function StatCard({
 // ─────────────────────────────────────────────
 export default function Calculator() {
   const [inputs, setInputs] = useState<Inputs>({
-    noOfContainers: "100",
+    noOfContainers: "600",
     costPerContainer: "600",
-    tripsPerYear: "12",
-    portCharges: "2400",
-    fuelCost: "6000",
+    tripsPerYear: "18",
+    portCharges: "30000",
+    fuelCost: "55000",
     operatingCost: "3600",
-    rentalPerMonth: "1800",
+    fixedExpensePerYear: "279000",
     usdExchangeRate: "91.59",
   });
 
@@ -178,7 +178,7 @@ export default function Calculator() {
       (n("portCharges") + n("fuelCost") + n("operatingCost")) * rate;
 
     const totalAnnualExpenses =
-      variablePerTrip * n("tripsPerYear") + n("rentalPerMonth") * rate * 12;
+      variablePerTrip * n("tripsPerYear") + n("fixedExpensePerYear") * rate * 12;
 
     const annualProfit = annualRevenue - totalAnnualExpenses;
 
@@ -188,11 +188,15 @@ export default function Calculator() {
         ? ((5_500_000 / profitInUSD) * 100).toFixed(1)
         : "0.0";
 
+    const costRecoveryYears =
+      profitInUSD > 0 ? (5_500_000 / profitInUSD).toFixed(2) : "—";
+
     return {
       annualRevenue,
       totalAnnualExpenses,
       annualProfit,
       profitMargin,
+      costRecoveryYears,
       rate,
     };
   }, [inputs]);
@@ -301,10 +305,11 @@ export default function Calculator() {
           <InputGroup label="Fixed Expenses" icon={<Building2 size={16} />}>
             <Field
               label="Monthly Rental ($)"
-              name="rentalPerMonth"
-              value={inputs.rentalPerMonth}
+              name="fixedExpensePerYear"
+              value={inputs.fixedExpensePerYear}
               onChange={handleChange}
               prefix="$"
+              placeholder="23250"
             />
           </InputGroup>
 
@@ -318,9 +323,9 @@ export default function Calculator() {
               <span className="text-right font-medium text-slate-200">
                 ${fmt(String((parseFloat(inputs.portCharges) || 0) + (parseFloat(inputs.fuelCost) || 0) + (parseFloat(inputs.operatingCost) || 0)))}
               </span>
-              <span className="text-slate-400">Annual Rental</span>
+              <span className="text-slate-400">Fixed Expenses / Year</span>
               <span className="text-right font-medium text-slate-200">
-                ${fmt(String((parseFloat(inputs.rentalPerMonth) || 0) * 12))}
+                ${fmt(String((parseFloat(inputs.fixedExpensePerYear) || 0) * 12))}
               </span>
               <span className="text-slate-400">Containers / Year</span>
               <span className="text-right font-medium text-slate-200">
@@ -384,6 +389,24 @@ export default function Calculator() {
                 </p>
               </div>
             </div>
+            <div className="print-card rounded-xl border border-sky-500/30 bg-slate-800/60 backdrop-blur p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Cost Recovery Years
+                </span>
+                <span className="text-sky-400">
+                  <Anchor size={20} />
+                </span>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-sky-300">
+                  {results.costRecoveryYears} yrs
+                </p>
+                <p className="text-sm text-slate-400 mt-0.5">
+                  Years to recover $5.5M USD
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Breakdown table */}
@@ -414,7 +437,7 @@ export default function Calculator() {
                   },
                   {
                     label: "Fixed Expenses (Annual)",
-                    val: (parseFloat(inputs.rentalPerMonth) || 0) * results.rate * 12,
+                    val: (parseFloat(inputs.fixedExpensePerYear) || 0) * results.rate * 12,
                     cls: "text-orange-300",
                   },
                   {
